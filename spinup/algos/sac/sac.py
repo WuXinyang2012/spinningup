@@ -136,7 +136,8 @@ def sac(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
     np.random.seed(seed)
 
     env, test_env = env_fn(), env_fn()
-    obs_dim = env.observation_space.shape[0]
+    #obs_dim = env.observation_space.shape[0]
+    obs_dim = env.observation_space.spaces['observation'].shape[0]
     act_dim = env.action_space.shape[0]
 
     # Action limit for clamping: critically, assumes all dimensions share the same bound!
@@ -215,7 +216,7 @@ def sac(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
 
     def get_action(o, deterministic=False):
         act_op = mu if deterministic else pi
-        return sess.run(act_op, feed_dict={x_ph: o.reshape(1,-1)})[0]
+        return sess.run(act_op, feed_dict={x_ph: o['observation'].reshape(1,-1)})[0]
 
     def test_agent(n=10):
         global sess, mu, pi, q1, q2, q1_pi, q2_pi
@@ -256,7 +257,7 @@ def sac(env_fn, actor_critic=core.mlp_actor_critic, ac_kwargs=dict(), seed=0,
         d = False if ep_len==max_ep_len else d
 
         # Store experience to replay buffer
-        replay_buffer.store(o, a, r, o2, d)
+        replay_buffer.store(o['observation'], a, r, o2['observation'], d)
 
         # Super critical, easy to overlook step: make sure to update 
         # most recent observation!
